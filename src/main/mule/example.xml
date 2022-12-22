@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="66f39a3c-e510-4d19-9a6c-6b21dfb2f11a" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<ee:object-store-caching-strategy name="Caching_Strategy" doc:name="Caching Strategy" doc:id="9c35c1e5-4cd3-440a-8043-de3f42cde3e5" />
+	<flow name="AsyncFlow" doc:id="2569aef9-ded9-4cdd-a182-7340d8b1d1b9" >
+		<http:listener doc:name="Listener" doc:id="fecdb576-3dcb-4ede-95e5-fffdc6ec180a" config-ref="HTTP_Listener_config" path="/async"/>
+		<logger level="INFO" doc:name="First Logger" doc:id="173d2a96-ed11-47cc-a76d-42f5a11b8dcc" message="First Logger"/>
+		<logger level="INFO" doc:name="Second Logger" doc:id="7d2e3e8f-e346-4f9b-a598-b016e820a626" message="Second Logger"/>
+	</flow>
+	<sub-flow name="AsyncSubFlow" doc:id="0e42a351-18cc-4140-93e7-b37c71a70286" >
+		<set-payload value='#["You are in Sub flow of Async flow"]' doc:name="Set Payload" doc:id="f92867b4-147b-464d-96aa-19c60d977758" />
+		<logger level="INFO" doc:name="Logger" doc:id="cf93d01b-12d9-4a65-a0a9-fd1606c2577c" message="#[payload]"/>
+	</sub-flow>
+	<flow name="Cacheflow" doc:id="fa7c4ae9-1d7e-4a9f-a301-c98c8fdffdaf" >
+		<http:listener doc:name="Listener" doc:id="e83869bd-bd4c-4c51-b7e8-8f598ce4462f" config-ref="HTTP_Listener_config" path="/cache" />
+		<logger level="INFO" doc:name="First Logger" doc:id="4a2e60a9-5a12-456e-8312-5a463005a0f6" message="First Logger" />
+		<ee:cache doc:name="Cache" doc:id="955fc44e-2d00-4f03-b760-8d6b45595bbd" cachingStrategy-ref="Caching_Strategy">
+			<flow-ref doc:name="Flow Reference" doc:id="260892e1-3e00-4210-a2b5-c8442099782b" name="cacheSub_Flow" />
+		</ee:cache>
+		<logger level="INFO" doc:name="Second Logger" doc:id="37b61560-835d-4c61-b249-3599d1c0f54d" message="Second Logger" />
+	</flow>
+	<sub-flow name="cacheSub_Flow" doc:id="af1fbde4-c3ab-4e86-9020-5303ad2ccf7c" >
+		<set-payload value='#["You are in Cache sub flow"]' doc:name="Set Payload" doc:id="c1376e74-43bb-4bd8-9b58-fa2f36ce4cf3" />
+		<logger level="INFO" doc:name="Logger" doc:id="d7187d79-95a7-48c5-82b4-79ed23f6c6ec" message="#[payload]"/>
+	</sub-flow>
+	<flow name="ForEachflow" doc:id="b5e1bb6c-3b78-4eef-9093-1c21af96ff6b" >
+		<http:listener doc:name="Listener" doc:id="2e268ca2-77df-4dc3-974f-8affd51b2764" config-ref="HTTP_Listener_config" path="/foreach" />
+		<set-payload value="#[[1,2,7,4,8]]" doc:name="[1,2,7,4,8]" doc:id="a2903153-e3e6-4f8d-af2d-109c7575c5ba" />
+		<logger level="INFO" doc:name="First Logger" doc:id="5b2300c2-173b-4e26-843c-68dec60c770e" message="First Logger" />
+		<foreach doc:name="For Each" doc:id="6c78379d-d8b8-4e6f-8ce2-f076837c7f62" >
+			<set-payload value="#[payload + 10]" doc:name="Set Payload" doc:id="1651127b-2167-4e9b-902e-27dff1f3bed5" />
+			<logger level="INFO" doc:name="Logger" doc:id="4dd5cd2a-5319-4363-ad84-899773c19e4f" message="#[payload]"/>
+		</foreach>
+		<ee:transform doc:name="Transform Message" doc:id="f79576e6-1e79-493a-916a-777125895a71" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Second Logger" doc:id="416b307e-e5a5-49da-865c-d82eec1f966e" message="Second Logger" />
+	</flow>
+</mule>
